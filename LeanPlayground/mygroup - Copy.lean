@@ -8,10 +8,10 @@ I did not get it to work with the identity element.
 
 set_option quotPrecheck false
 
-variable {myGroup: Type}
+variable {myGroup: Type U}
 variable {I: myGroup }
 variable {mul:myGroup→ myGroup→ myGroup}
-variable {inv:myGroup → myGroup }
+variable {inv:myGroup → myGroup}
 
 axiom axassoc1: ∀ (g h k:myGroup),(mul g (mul h k)) = (mul (mul g h) k)
 axiom axassoc2: ∀ (g h k:myGroup),(mul (mul g h) k) = (mul g (mul h k))
@@ -89,7 +89,7 @@ theorem inv_mul (I: myGroup)(a b : myGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := 
     exact h₂
   exact Eq.symm (unique_left_inverse (a * b) (b⁻¹ * a⁻¹) h₁)
 
-theorem left_cancellation {inv:myGroup → myGroup}(a u w I: myGroup) : mul a u = mul a w → u = w := by
+theorem left_cancellation (inv:myGroup → myGroup)(a u w I: myGroup) : mul a u = mul a w → u = w := by
   intro h
   have h₁: inv a * (a * u) = inv a * (a * w) := by
     rw[h]
@@ -105,7 +105,7 @@ theorem left_cancellation {inv:myGroup → myGroup}(a u w I: myGroup) : mul a u 
   rw [h₆] at h₁
   exact h₁
 
-theorem right_cancellation {inv:myGroup → myGroup}(a u w I: myGroup): mul u a = mul w a → u = w := by
+theorem right_cancellation (inv:myGroup → myGroup)(a u w I: myGroup): mul u a = mul w a → u = w := by
   intro h
   have h₁: (u * a) * inv a = (w * a) * inv a := by
     rw[h]
@@ -121,13 +121,14 @@ theorem right_cancellation {inv:myGroup → myGroup}(a u w I: myGroup): mul u a 
   rw [h₆] at h₁
   exact h₁
 
-def pow (a : myGroup) : ℕ → myGroup
-| 0       => I
+def pow (a : myGroup)(n:ℕ) : myGroup :=
+match n with
+| (0:ℕ)        => I
 | (n + 1) => a * pow a n
 
 notation a " ^ " n => pow a n
 
-theorem questionTwo (n : ℕ)(a b : myGroup) (h : a * b = b * a) : (a * b) ^ n = a ^ n * b ^ n := by
+theorem questionTwo (mul:myGroup→ myGroup→ myGroup)(n : ℕ)(a b : myGroup) (h : mul a  b = mul b a) : pow (mul a b) n = mul (pow a  n) (pow b  n) := by
   -- induction n with
   -- | zero =>
   --   -- Base case: n = 0
@@ -149,12 +150,12 @@ theorem questionThree {inv:myGroup → myGroup}(a b I : myGroup) (h : (a * a) * 
   rw [h₂] at h₁
   have h₃ : (a * a) * (b * b) = a * (a * (b * b)) := axassoc2 a a (b * b)
   rw [h₃] at h₁
-  have h₄ : b * (a * b) = a * (b * b) :=  left_cancellation a (b * (a * b)) (a * (b * b)) I h₁
+  have h₄ : b * (a * b) = a * (b * b) :=  (left_cancellation inv a (b * (a * b)) (a * (b * b)) I) h₁
   have h₅ : b * (a * b) = (b * a) * b := axassoc1 b a b
   rw [h₅] at h₄
   have h₆ : a * (b * b) = (a * b) * b := axassoc1 a b b
   rw [h₆] at h₄
-  have h₇ : (b * a) = (a * b) := right_cancellation b (b * a) (a * b) h₄
+  have h₇ : (b * a) = (a * b) := (right_cancellation inv b (b * a) (a * b) I) h₄
   exact Eq.symm h₇
 
 /- Declare H as a subset of myGroup -/
