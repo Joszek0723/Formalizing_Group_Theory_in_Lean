@@ -69,11 +69,10 @@ _ = (b * a) * a⁻¹ :=  (axassoc1 b a a⁻¹)
 _ = I * a⁻¹ := by rw [h]
 _ = a⁻¹ := And.right (axid a⁻¹)
 
-theorem inverse_inverse {mul:myGroup→ myGroup→ myGroup}{inv:myGroup → myGroup}(a I: myGroup) : (a⁻¹)⁻¹ = a := by
-  have h₁: mul (inv a) (inv (inv a)) = I  := And.left (axinv (inv a))
-
-  -- have h₁ : a * inv a = I := And.left (axinv (a))
-  -- exact unique_left_inverse a⁻¹ a h₁
+theorem inverse_inverse {mul:myGroup→ myGroup→ myGroup}{inv:myGroup → myGroup}(a I: myGroup) : inv (inv a) = a := by
+  have h₁: mul a (inv a) = I  := And.left (axinv a)
+  have h₂: a = inv (inv a) := (unique_left_inverse (inv a) a h₁)
+  exact Eq.symm (h₂)
 
 theorem inv_mul (I: myGroup)(a b : myGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
   have h₁ : (b⁻¹ * a⁻¹) * (a * b) = I := by
@@ -128,7 +127,7 @@ match n with
 
 notation a " ^ " n => pow a n
 
-theorem questionTwo (mul:myGroup→ myGroup→ myGroup)(n : ℕ)(a b : myGroup) (h : mul a  b = mul b a) : pow (mul a b) n = mul (pow a  n) (pow b  n) := by
+theorem questionTwo {mul : myGroup→ myGroup→ myGroup}(n : ℕ)(a b : myGroup) (h : mul a  b = mul b a) : pow (mul a b) n = mul (pow a  n) (pow b  n) := by
   -- induction n with
   -- | zero =>
   --   -- Base case: n = 0
