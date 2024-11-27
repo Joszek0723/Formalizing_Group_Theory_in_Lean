@@ -120,13 +120,6 @@ theorem right_cancellation (inv:myGroup → myGroup)(a u w I: myGroup): mul u a 
   rw [h₆] at h₁
   exact h₁
 
--- def pow (a : myGroup)(n:ℕ) : myGroup :=
--- match n with
--- | (0:ℕ)        => I
--- | (n + 1) => a * pow a n
-
--- notation a " ^ " n => pow a n
-
 def pow (mul : myGroup → myGroup → myGroup) (I : myGroup) (a : myGroup) (n : ℕ) : myGroup :=
   match n with
   | 0        => I
@@ -134,21 +127,36 @@ def pow (mul : myGroup → myGroup → myGroup) (I : myGroup) (a : myGroup) (n :
 
 notation a " ^ " n => pow mul I a n
 
-theorem questionTwo (n : ℕ) (a b : myGroup) (h : mul a b = mul b a) : pow mul I (mul a b) n = mul (pow mul I a n) (pow mul I b n) := by
-  -- induction n with
-  -- | zero =>
-  --   -- Base case: n = 0
-  --   rw [pow, pow, pow, pow]
-  --   rw [I]
-  --   rw [I * I]
-  -- | succ n ih =>
-  --   -- Inductive step
-  --   rw [pow, pow, pow, pow]
-  --   rw [←mul_assoc, h, mul_assoc a b (pow (a * b) n)]
-  --   rw [ih]
-  --   rw [mul_assoc, ←mul_assoc b (a ^ n) (b ^ n)]
-  --   rw [h, mul_assoc]
-  sorry
+theorem questionTwo (n : ℕ) (a b : myGroup)  (h : ∀ x y : myGroup, mul x y = mul y x) :
+  pow mul I (mul a b) n = mul (pow mul I a n) (pow mul I b n) := by
+  induction n with
+  | zero =>
+    -- Base case: n = 0
+    calc
+      pow mul I (mul a b) 0 = I := rfl
+      _ = mul I I := Eq.symm (And.left (axid I)) -- Identity property
+      _ = mul (pow mul I a 0) (pow mul I b 0) := rfl
+  | succ n ih =>
+    -- Inductive step: Assume the statement holds for n, prove for n + 1
+    have h₁ : pow mul I (mul a b) (n + 1) = mul (mul a b) (pow mul I (mul a b) n) := rfl
+    have h₂ : pow mul I (mul a b) n =  (mul (pow mul I a n) (pow mul I b n)) := ih
+    rw [h₂] at h₁
+    have h₃ : mul (mul a b) (mul (pow mul I a n) (pow mul I b n)) = mul (mul (mul a b) (pow mul I a n)) (pow mul I b n) := axassoc1 (mul a b) (pow mul I a n) (pow mul I b n)
+    rw [h₃] at h₁
+    have h₄ : mul (mul a b) (pow mul I a n) = mul a (mul b (pow mul I a n)) := axassoc2 a b (pow mul I a n)
+    rw [h₄] at h₁
+    have h₅ : mul b (pow mul I a n) = mul (pow mul I a n) b := h b (pow mul I a n)
+    rw [h₅] at h₁
+    have h₆ : mul a (mul (pow mul I a n) b) = mul (mul a (pow mul I a n)) b := axassoc1 a (pow mul I a n) b
+    rw [h₆] at h₁
+    have h₇ : mul a (pow mul I a n) = pow mul I a (n+1) := rfl
+    rw [h₇] at h₁
+    have h₈ : mul (mul (pow mul I a (n + 1)) b) (pow mul I b n) = mul (pow mul I a (n + 1)) (mul b (pow mul I b n)) := axassoc2 (pow mul I a (n + 1)) b (pow mul I b n)
+    rw [h₈] at h₁
+    have h₉ : mul b (pow mul I b n) = pow mul I b (n + 1) := rfl
+    rw[h₉] at h₁
+    exact h₁
+
 
 theorem questionThree {inv:myGroup → myGroup}(a b I : myGroup) (h : (a * a) * (b * b) = (a * b) * (a * b)) : a * b = b * a := by
   have h₁ : (a * b) * (a * b) = (a * a) * (b * b) := Eq.symm h
