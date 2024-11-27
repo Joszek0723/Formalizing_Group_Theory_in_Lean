@@ -134,7 +134,7 @@ theorem questionTwo (n : ℕ) (a b : myGroup)  (h : ∀ x y : myGroup, mul x y =
     -- Base case: n = 0
     calc
       pow mul I (mul a b) 0 = I := rfl
-      _ = mul I I := Eq.symm (And.left (axid I)) -- Identity property
+      _ = mul I I := Eq.symm (And.left (axid I))
       _ = mul (pow mul I a 0) (pow mul I b 0) := rfl
   | succ n ih =>
     -- Inductive step: Assume the statement holds for n, prove for n + 1
@@ -172,19 +172,20 @@ theorem questionThree {inv:myGroup → myGroup}(a b I : myGroup) (h : (a * a) * 
   have h₇ : (b * a) = (a * b) := (right_cancellation inv b (b * a) (a * b) I) h₄
   exact Eq.symm h₇
 
+
 /- Declare H as a subset of myGroup -/
 variable {H : myGroup → Prop}  -- H x means x ∈ H
 
 /- Axioms stating that H is a subgroup -/
 axiom H_contains_I : H I                                       -- H contains the identity element
-axiom H_closed_mul : ∀ x y, H x → H y → H (x * y)              -- H is closed under multiplication
+axiom H_closed_mul : ∀ x y, H x → H y → H (mul x y)              -- H is closed under multiplication
 axiom H_closed_inv : ∀ x, H x → H (x⁻¹)                        -- H is closed under taking inverses
 
 /- Axioms defining the left coset gH -/
 variable {left_coset : myGroup → myGroup → Prop}  -- left_coset g x means x ∈ gH
 
 /- Axiom stating the definition of the left coset -/
-axiom left_coset_def : ∀ g x, left_coset g x ↔ ∃ h, H h ∧ x = g * h
+axiom left_coset_def : ∀ g x, left_coset g x ↔ ∃ h, H h ∧ x = h * g
 
 theorem subgroup_coset_bijection (g : myGroup) :
   ∃ f : myGroup → myGroup,
@@ -193,3 +194,82 @@ theorem subgroup_coset_bijection (g : myGroup) :
     (∀ y : myGroup, left_coset g y → ∃ x : myGroup, H x ∧ f x = y)  -- f is surjective onto C
 := by
   sorry
+
+
+-- theorem left_coset_inclusion
+--   (h₁ h₂ : myGroup) (H_h₁ : H h₁) (H_h₂ : H h₂)
+--   (x : myGroup) (h₁g₁_eq_x : mul h₁ g₁ = x) (h₂g₂_eq_x : mul h₂ g₂ = x) :
+--   ∀ y, left_coset g₁ y → left_coset g₂ y := by
+--   intros y h
+--   -- Use the definition of left_coset for g₁ to extract h₁'
+--   obtain ⟨h₁', H_h₁', y_eq_g₁h₁'⟩ := (left_coset_def g₁ y).mp h
+--   -- Rewrite g₁ in terms of h₁ and x
+--   have g₁_eq : g₁ = mul (h₁⁻¹) x := by
+--     rw [← h₁g₁_eq_x]
+--     simp [mul_assoc, mul_left_inv, mul_one]
+--   rw [g₁_eq] at y_eq_g₁h₁'
+--   -- Now y = (h₁⁻¹ * x) * h₁'
+--   let h₂' := mul (mul (mul h₁⁻¹ x) h₁') g₂⁻¹
+--   -- Verify that h₂' ∈ H
+--   have H_h₂' : H h₂' := by
+--     rw [← h₂g₂_eq_x, mul_assoc, mul_inv_cancel_right, ← mul_assoc]
+--     apply H_closed_mul
+--     · apply H_closed_mul
+--       · apply H_closed_inv; exact H_h₁
+--       · exact H_h₂
+--     · exact H_h₁'
+--   -- Show that y ∈ g₂H using h₂'
+--   rw [← h₂g₂_eq_x, mul_assoc] at y_eq_g₁h₁'
+--   rw [← h₁g₁_eq_x] at y_eq_g₁h₁'
+--   exact (left_coset_def g₂ y).mpr ⟨h₂', H_h₂', y_eq_g₁h₁'⟩
+
+
+theorem left_coset_inclusion
+  {inv:myGroup → myGroup}(h₁ h₂ : myGroup) (H_h₁ : H h₁) (H_h₂ : H h₂)
+  (x I : myGroup) (h₁g₁_eq_x : mul h₁ g₁ = x) (h₂g₂_eq_x : mul h₂ g₂ = x) :
+  ∀ y, left_coset g₁ y → left_coset g₂ y := by
+  intros y h
+  have hexists : ∃ h, H h ∧ y = h * g₁ := (left_coset_def g₁ y).mp h
+  cases' hexists with w h₁'
+  have h₂' : y = mul w g₁ := And.right h₁'
+  have h₃' : x = x := rfl
+  have h₄' : mul h₁ g₁ = x := h₁g₁_eq_x
+  have h₅' : mul h₂ g₂ = x := h₂g₂_eq_x
+  have h₆' : mul h₁ g₁ = mul h₂ g₂ := by rw [h₅', h₄']
+  have h₇' : mul (inv h₁) (mul h₁ g₁) = mul (inv h₁) (mul h₂ g₂) := by rw[h₆']
+  have h₈' : mul (inv h₁) (mul h₁ g₁) = mul (mul (inv h₁) h₁) g₁ := axassoc1 (inv h₁) h₁ g₁
+  rw[h₈'] at h₇'
+  have h₉' : mul (inv h₁) h₁ = I := And.right (axinv h₁)
+  rw [h₉'] at h₇'
+  have h₁₀' : mul I g₁ = g₁ := And.right (axid g₁)
+  rw [h₁₀'] at h₇'
+  rw [h₇'] at h₂'
+  have h₁₁' : mul (inv h₁) (mul h₂ g₂) = mul (mul (inv h₁) h₂) g₂ := axassoc1 (inv h₁) h₂ g₂
+  rw [h₁₁'] at h₂'
+  have h₁₂' : mul w (mul (mul (inv h₁) h₂) g₂) = mul (mul w (mul (inv h₁) h₂)) g₂ := axassoc1 w (mul (inv h₁) h₂) g₂
+  rw [h₁₂'] at h₂'
+  let v := mul w (mul (inv h₁) h₂)
+  have Hv : H v := by
+    apply H_closed_mul
+    · exact H_closed_mul w (inv h₁) (And.left h₁') (And.right (axinv h₁))
+    · exact H_h₂
+  have : y = mul v g₂ := by
+    rw [h₂']
+  apply left_coset_def g₂
+  use v
+  constructor
+  · exact Hv
+  · rfl
+
+  -- have h₇' : g₁ = inv h₁ * (h₂ * g₂) := by
+  --   rw [← axassoc2 inv h₁ h₁ g₁]  -- Group h₁⁻¹ and h₁ first
+  --   rw [And.left (axinv h₁)]    -- Simplify h₁⁻¹ * h₁ to I
+  --   rw [And.right (axid g₁)]   -- Simplify I * g₁ to g₁
+
+
+  -- ∃ h (h∈ H ∧ y=g₁ * h)
+  -- exists elimination
+  -- (a ∈ H ∧ y = g₁ a)
+  -- And.right y=g₁ a
+  -- y = g₂ a
+  -- ∃ h y=g₂ h
