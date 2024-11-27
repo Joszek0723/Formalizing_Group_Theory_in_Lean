@@ -120,14 +120,21 @@ theorem right_cancellation (inv:myGroup → myGroup)(a u w I: myGroup): mul u a 
   rw [h₆] at h₁
   exact h₁
 
-def pow (a : myGroup)(n:ℕ) : myGroup :=
-match n with
-| (0:ℕ)        => I
-| (n + 1) => a * pow a n
+-- def pow (a : myGroup)(n:ℕ) : myGroup :=
+-- match n with
+-- | (0:ℕ)        => I
+-- | (n + 1) => a * pow a n
 
-notation a " ^ " n => pow a n
+-- notation a " ^ " n => pow a n
 
-theorem questionTwo {mul : myGroup→ myGroup→ myGroup}(n : ℕ)(a b : myGroup) (h : mul a  b = mul b a) : pow (mul a b) n = mul (pow a  n) (pow b  n) := by
+def pow (mul : myGroup → myGroup → myGroup) (I : myGroup) (a : myGroup) (n : ℕ) : myGroup :=
+  match n with
+  | 0        => I
+  | n + 1    => mul a (pow mul I a n)
+
+notation a " ^ " n => pow mul I a n
+
+theorem questionTwo (n : ℕ) (a b : myGroup) (h : mul a b = mul b a) : pow mul I (mul a b) n = mul (pow mul I a n) (pow mul I b n) := by
   -- induction n with
   -- | zero =>
   --   -- Base case: n = 0
