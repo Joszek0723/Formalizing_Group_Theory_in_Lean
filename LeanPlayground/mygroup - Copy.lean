@@ -24,7 +24,7 @@ infixl:100  " * "  => mul
 /-notation " I " => one   not sure how to make it be 1-/
 
 /- Just to see how the notational stuff is working -/
-example  {b: MyGroup}:mul b (inv b) = I :=   by apply And.left (axinv b)
+example  {b: MyGroup} : mul b (inv b) = I := by apply And.left (axinv b)
 example {b: MyGroup} : mul b (b⁻¹) = I := by apply And.left (axinv b)
 example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
 example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
