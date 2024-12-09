@@ -8,15 +8,16 @@ I did not get it to work with the identity element.
 
 set_option quotPrecheck false
 
-variable {myGroup: Type U}
-variable {I: myGroup }
-variable {mul:myGroup→ myGroup→ myGroup}
-variable {inv:myGroup → myGroup}
+axiom MyGroup:Type
 
-axiom axassoc1: ∀ (g h k:myGroup),(mul g (mul h k)) = (mul (mul g h) k)
-axiom axassoc2: ∀ (g h k:myGroup),(mul (mul g h) k) = (mul g (mul h k))
-axiom axinv : ∀ (g: myGroup), (mul g (inv g)) = I ∧ (mul (inv g) g) = I
-axiom axid :∀ (g: myGroup), mul g I=g  ∧ mul I g = g
+axiom mul : MyGroup → MyGroup → MyGroup
+axiom I : MyGroup
+axiom inv: MyGroup → MyGroup
+
+axiom axassoc1: ∀ (g h k: MyGroup),(mul g (mul h k)) = (mul (mul g h) k)
+axiom axassoc2: ∀ (g h k: MyGroup),(mul (mul g h) k) = (mul g (mul h k))
+axiom axinv (a : MyGroup): (mul a (inv a) = I) ∧ (mul (inv a) a = I)
+axiom axid (a : MyGroup): (mul a I  = a) ∧ (mul I a = a)
 
 #check axinv
 postfix:max  "⁻¹" =>  inv
@@ -24,19 +25,19 @@ infixl:100  " * "  => mul
 /-notation " I " => one   not sure how to make it be 1-/
 
 /- Just to see how the notational stuff is working -/
-example  {b:myGroup}:mul b (inv b) = I :=   by apply And.left (axinv b)
-example {b: myGroup} : mul b (b⁻¹) = I := by apply And.left (axinv b)
-example {b: myGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
-example {b: myGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
+example  {b: MyGroup}:mul b (inv b) = I :=   by apply And.left (axinv b)
+example {b: MyGroup} : mul b (b⁻¹) = I := by apply And.left (axinv b)
+example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
+example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
 
 
-example {a b c:myGroup}:   (mul a (mul b c))=(mul (mul a b) c)   :=  by apply axassoc1 a b c
+example {a b c: MyGroup}: (mul a (mul b c))=(mul (mul a b) c) :=  by apply axassoc1 a b c
 
 /- Now a real theorem.  The identity is unique; there's
 both a left and right version.  The first says there's a unique
 left identity. -/
 
-theorem unique_id_left (z: myGroup)(h : ∀ (g:myGroup),z*g = g):z = I := by
+theorem unique_id_left (z: MyGroup)(h : ∀ (g: MyGroup), z*g = g):z = I := by
 have h₁: z*I = z  :=  (And.left (axid z))
 have h₁₁: z = z* I := Eq.symm h₁
 have h₂: z * I = I := h I
@@ -44,7 +45,7 @@ exact Eq.trans h₁₁ h₂
 
 /-Can't we do this with a calculational proof? We can! -/
 
-theorem unique_id_left2 (z: myGroup)(h : ∀ (g:myGroup),z*g = g):z = I := by
+theorem unique_id_left2 (z: MyGroup)(h : ∀ (g: MyGroup), z*g = g):z = I := by
 calc
 z = z * I := Eq.symm (And.left (axid z))
 _ = I := h I
@@ -53,14 +54,14 @@ _ = I := h I
 both the theorems in the chapter text and exercises.-/
 
 /- unique right identity -/
-theorem unique_id_right (z: myGroup)(h : ∀ (g:myGroup),g * z = g):z = I := by
+theorem unique_id_right (z: MyGroup)(h : ∀ (g: MyGroup), g * z = g): z = I := by
 calc
 z = I * z := Eq.symm (And.right (axid z))
 _   = I := h I
 
 /-unique left inverse -/
 
-theorem unique_left_inverse (a b :myGroup)(h: b * a = I): b = a⁻¹ := by
+theorem unique_left_inverse (a b: MyGroup)(h: b * a = I): b = a⁻¹ := by
 have ha: I = a * a⁻¹  := Eq.symm (And.left (axinv a))
 calc
 b = b * I := Eq.symm (And.left (axid b))
@@ -69,12 +70,12 @@ _ = (b * a) * a⁻¹ :=  (axassoc1 b a a⁻¹)
 _ = I * a⁻¹ := by rw [h]
 _ = a⁻¹ := And.right (axid a⁻¹)
 
-theorem inverse_inverse {mul:myGroup→ myGroup→ myGroup}{inv:myGroup → myGroup}(a I: myGroup) : inv (inv a) = a := by
+theorem inverse_inverse (a: MyGroup) : inv (inv a) = a := by
   have h₁: mul a (inv a) = I  := And.left (axinv a)
   have h₂: a = inv (inv a) := (unique_left_inverse (inv a) a h₁)
   exact Eq.symm (h₂)
 
-theorem inv_mul (I: myGroup)(a b : myGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
+theorem inv_mul (a b : MyGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
   have h₁ : (b⁻¹ * a⁻¹) * (a * b) = I := by
     have h₂ : (b⁻¹ * a⁻¹) * (a * b) = b⁻¹ * (a⁻¹ * (a * b)) := axassoc2 b⁻¹ a⁻¹ (a * b)
     have h₃ : a⁻¹ * (a * b) = (a⁻¹ * a) * b := axassoc1 a⁻¹ a b
@@ -88,7 +89,7 @@ theorem inv_mul (I: myGroup)(a b : myGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := 
     exact h₂
   exact Eq.symm (unique_left_inverse (a * b) (b⁻¹ * a⁻¹) h₁)
 
-theorem left_cancellation (inv:myGroup → myGroup)(a u w I: myGroup) : mul a u = mul a w → u = w := by
+theorem left_cancellation (a u w: MyGroup) : mul a u = mul a w → u = w := by
   intro h
   have h₁: inv a * (a * u) = inv a * (a * w) := by
     rw[h]
@@ -104,7 +105,7 @@ theorem left_cancellation (inv:myGroup → myGroup)(a u w I: myGroup) : mul a u 
   rw [h₆] at h₁
   exact h₁
 
-theorem right_cancellation (inv:myGroup → myGroup)(a u w I: myGroup): mul u a = mul w a → u = w := by
+theorem right_cancellation (a u w : MyGroup): mul u a = mul w a → u = w := by
   intro h
   have h₁: (u * a) * inv a = (w * a) * inv a := by
     rw[h]
@@ -120,114 +121,172 @@ theorem right_cancellation (inv:myGroup → myGroup)(a u w I: myGroup): mul u a 
   rw [h₆] at h₁
   exact h₁
 
-def pow (mul : myGroup → myGroup → myGroup) (I : myGroup) (a : myGroup) (n : ℕ) : myGroup :=
-  match n with
-  | 0        => I
-  | n + 1    => mul a (pow mul I a n)
+noncomputable def pow (a : MyGroup)(n : ℕ ): MyGroup :=
+match n with
+  |0 => I
+  |n + 1 => a * (pow a n)
 
-notation a " ^ " n => pow mul I a n
+notation a " ^ " n => pow a n
 
-theorem questionTwo (n : ℕ) (a b : myGroup)  (h : ∀ x y : myGroup, mul x y = mul y x) :
-  pow mul I (mul a b) n = mul (pow mul I a n) (pow mul I b n) := by
+theorem questionTwo (n : ℕ) (a b : MyGroup)  (h : ∀ x y : MyGroup, mul x y = mul y x) :
+  pow (mul a b) n = mul (pow a n) (pow b n) := by
   induction n with
   | zero =>
     -- Base case: n = 0
-    calc
-      pow mul I (mul a b) 0 = I := rfl
-      _ = mul I I := Eq.symm (And.left (axid I))
-      _ = mul (pow mul I a 0) (pow mul I b 0) := rfl
+    have h₁: pow (mul a b) 0 = I := rfl
+    have h₂: I = mul I I := Eq.symm (And.left (axid I))
+    rw [h₂] at h₁
+    have h₃: mul I I = mul (pow a 0) (pow b 0) := rfl
+    rw [h₃] at h₁
+    exact h₁
   | succ n ih =>
     -- Inductive step: Assume the statement holds for n, prove for n + 1
-    have h₁ : pow mul I (mul a b) (n + 1) = mul (mul a b) (pow mul I (mul a b) n) := rfl
-    have h₂ : pow mul I (mul a b) n =  (mul (pow mul I a n) (pow mul I b n)) := ih
+    have h₁ : pow (mul a b) (n + 1) = mul (mul a b) (pow (mul a b) n) := rfl
+    have h₂ : pow (mul a b) n =  (mul (pow a n) (pow b n)) := ih
     rw [h₂] at h₁
-    have h₃ : mul (mul a b) (mul (pow mul I a n) (pow mul I b n)) = mul (mul (mul a b) (pow mul I a n)) (pow mul I b n) := axassoc1 (mul a b) (pow mul I a n) (pow mul I b n)
+    have h₃ : mul (mul a b) (mul (pow a n) (pow b n)) = mul (mul (mul a b) (pow a n)) (pow b n) := axassoc1 (mul a b) (pow a n) (pow b n)
     rw [h₃] at h₁
-    have h₄ : mul (mul a b) (pow mul I a n) = mul a (mul b (pow mul I a n)) := axassoc2 a b (pow mul I a n)
+    have h₄ : mul (mul a b) (pow a n) = mul a (mul b (pow a n)) := axassoc2 a b (pow a n)
     rw [h₄] at h₁
-    have h₅ : mul b (pow mul I a n) = mul (pow mul I a n) b := h b (pow mul I a n)
+    have h₅ : mul b (pow a n) = mul (pow a n) b := h b (pow a n)
     rw [h₅] at h₁
-    have h₆ : mul a (mul (pow mul I a n) b) = mul (mul a (pow mul I a n)) b := axassoc1 a (pow mul I a n) b
+    have h₆ : mul a (mul (pow a n) b) = mul (mul a (pow a n)) b := axassoc1 a (pow a n) b
     rw [h₆] at h₁
-    have h₇ : mul a (pow mul I a n) = pow mul I a (n+1) := rfl
+    have h₇ : mul a (pow a n) = pow a (n+1) := rfl
     rw [h₇] at h₁
-    have h₈ : mul (mul (pow mul I a (n + 1)) b) (pow mul I b n) = mul (pow mul I a (n + 1)) (mul b (pow mul I b n)) := axassoc2 (pow mul I a (n + 1)) b (pow mul I b n)
+    have h₈ : mul (mul (pow a (n + 1)) b) (pow b n) = mul (pow a (n + 1)) (mul b (pow b n)) := axassoc2 (pow a (n + 1)) b (pow b n)
     rw [h₈] at h₁
-    have h₉ : mul b (pow mul I b n) = pow mul I b (n + 1) := rfl
+    have h₉ : mul b (pow b n) = pow b (n + 1) := rfl
     rw[h₉] at h₁
     exact h₁
 
-
-theorem questionThree {inv:myGroup → myGroup}(a b I : myGroup) (h : (a * a) * (b * b) = (a * b) * (a * b)) : a * b = b * a := by
-  have h₁ : (a * b) * (a * b) = (a * a) * (b * b) := Eq.symm h
-  have h₂ : (a * b) * (a * b) = a * (b * (a * b)) := axassoc2 a b (a * b)
+theorem questionThree (a b : MyGroup) (h : (pow a 2) * (pow b 2) = pow (a * b) 2) : a * b = b * a := by
+  have h₁ : pow (a * b) 2 = pow a 2 * pow b 2 := Eq.symm h
+  have h₂ : pow (a * b) 2 = (a * b) * (a * b) := by
+    rw [pow]    -- (a*b)^2 = (a*b)*pow(a*b)1
+    rw [pow]    -- (a*b)*pow(a*b)1 = (a*b)*((a*b)*pow(a*b)0)
+    rw [pow]    -- (a*b)*((a*b)*pow(a*b)0) = (a*b)*((a*b)*I)
+    have hx : (a*b)*((a*b)*I) = ((a*b)*(a*b))*I := axassoc1 (a*b) (a*b) I
+    rw [hx]
+    rw [And.left (axid ((a*b)*(a*b)))]  -- ((a*b)*(a*b))*I = (a*b)*(a*b)
   rw [h₂] at h₁
-  have h₃ : (a * a) * (b * b) = a * (a * (b * b)) := axassoc2 a a (b * b)
+  have h₃ : (a * b) * (a * b) = a * (b * (a * b)) := axassoc2 a b (a * b)
   rw [h₃] at h₁
-  have h₄ : b * (a * b) = a * (b * b) :=  (left_cancellation inv a (b * (a * b)) (a * (b * b)) I) h₁
-  have h₅ : b * (a * b) = (b * a) * b := axassoc1 b a b
-  rw [h₅] at h₄
-  have h₆ : a * (b * b) = (a * b) * b := axassoc1 a b b
-  rw [h₆] at h₄
-  have h₇ : (b * a) = (a * b) := (right_cancellation inv b (b * a) (a * b) I) h₄
-  exact Eq.symm h₇
+  -- Prove (a ^ 2) * (b ^ 2) = (a * a) * (b * b)
+  have h₄a : pow a 2 = a * a := by
+    rw [pow]         -- (a^2) = a * (a^1)
+    rw [pow]         -- (a^1) = a * (a^0)
+    rw [pow]         -- (a^0) = I
+    have ha : a * (a * I) = (a * a) * I := axassoc1 a a I
+    rw [ha]
+    rw [And.left (axid (a * a))]  -- ((a*a)*I) = a*a
+  have h₄b : pow b 2 = b * b := by
+    rw [pow]         -- (b^2) = b * (b^1)
+    rw [pow]         -- (b^1) = b * (b^0)
+    rw [pow]         -- (b^0) = I
+    have hb : b * (b * I) = (b * b) * I := axassoc1 b b I
+    rw [hb]
+    rw [And.left (axid (b * b))]  -- ((b*b)*I) = b*b
+  have h₄' : pow a 2 * pow b 2 = (a * a) * (b * b) := by
+    rw [h₄a]
+    rw [h₄b]
+  rw [h₄'] at h₁
+  have h₅ : (a * a) * (b * b) = a * (a * (b * b)) := axassoc2 a a (b * b)
+  rw [h₅] at h₁
+  have h₆ : b * (a * b) = a * (b * b) := (left_cancellation a (b * (a * b)) (a * (b * b))) h₁
+  have h₇ : b * (a * b) = (b * a) * b := axassoc1 b a b
+  rw [h₇] at h₆
+  have h₈ : a * (b * b) = (a * b) * b := axassoc1 a b b
+  rw [h₈] at h₆
+  have h₉ : (b * a) = (a * b) := (right_cancellation b (b * a) (a * b)) h₆
+  exact Eq.symm h₉
 
 
-/- Declare H as a subset of myGroup -/
-variable {H : myGroup → Prop}  -- H x means x ∈ H
 
-/- Axioms stating that H is a subgroup -/
-axiom H_contains_I : H I                                       -- H contains the identity element
-axiom H_closed_mul : ∀ x y, H x → H y → H (mul x y)              -- H is closed under multiplication
-axiom H_closed_inv : ∀ x, H x → H (inv x)                        -- H is closed under taking inverses
+def mulclosed (H : MyGroup → Prop) := ∀ g h :MyGroup, H g ∧ H h → H (mul g h)
 
-/- Axioms defining the left coset gH -/
-variable {left_coset : myGroup → myGroup → Prop}  -- left_coset g x means x ∈ gH
+def invclosed (H: MyGroup → Prop ) := ∀ g : MyGroup, H g → H (inv g)
 
-/- Axiom stating the definition of the left coset -/
-axiom left_coset_def : ∀ g x, left_coset g x ↔ ∃ h, H h ∧ x = h * g
+def subgroup (H : MyGroup→ Prop) := (mulclosed H) ∧ (invclosed H) ∧ (H I)
 
-theorem subgroup_coset_bijection (g : myGroup) :
-  ∃ f : myGroup → myGroup,
-    (∀ x : myGroup, H x → left_coset g (f x)) ∧             -- f maps H into the coset C
-    (∀ x1 x2 : myGroup, H x1 → H x2 → f x1 = f x2 → x1 = x2) ∧  -- f is injective on H
-    (∀ y : myGroup, left_coset g y → ∃ x : myGroup, H x ∧ f x = y)  -- f is surjective onto C
-:= by
-  sorry
+/- definition of coset
+We write coset H K to mean H is a subgroup
+and K is a coset (right? left?) of H -/
 
-theorem left_coset_inclusion
-  {inv:myGroup → myGroup}(h₁ h₂ : myGroup) (H_h₁ : H h₁) (H_h₂ : H h₂)
-  (x I : myGroup) (h₁g₁_eq_x : mul h₁ g₁ = x) (h₂g₂_eq_x : mul h₂ g₂ = x) :
-  ∀ y, left_coset g₁ y → left_coset g₂ y := by
-  intros y h
-  have hexists : ∃ h, H h ∧ y = h * g₁ := (left_coset_def g₁ y).mp h
-  cases' hexists with w h₁'
-  have h₂' : y = mul w g₁ := And.right h₁'
-  have h₃' : x = x := rfl
-  have h₄' : mul h₁ g₁ = x := h₁g₁_eq_x
-  have h₅' : mul h₂ g₂ = x := h₂g₂_eq_x
-  have h₆' : mul h₁ g₁ = mul h₂ g₂ := by rw [h₅', h₄']
-  have h₇' : mul (inv h₁) (mul h₁ g₁) = mul (inv h₁) (mul h₂ g₂) := by rw[h₆']
-  have h₈' : mul (inv h₁) (mul h₁ g₁) = mul (mul (inv h₁) h₁) g₁ := axassoc1 (inv h₁) h₁ g₁
-  rw[h₈'] at h₇'
-  have h₉' : mul (inv h₁) h₁ = I := And.right (axinv h₁)
-  rw [h₉'] at h₇'
-  have h₁₀' : mul I g₁ = g₁ := And.right (axid g₁)
-  rw [h₁₀'] at h₇'
-  rw [h₇'] at h₂'
-  have h₁₁' : mul (inv h₁) (mul h₂ g₂) = mul (mul (inv h₁) h₂) g₂ := axassoc1 (inv h₁) h₂ g₂
-  rw [h₁₁'] at h₂'
-  have h₁₂' : mul w (mul (mul (inv h₁) h₂) g₂) = mul (mul w (mul (inv h₁) h₂)) g₂ := axassoc1 w (mul (inv h₁) h₂) g₂
-  rw [h₁₂'] at h₂'
-  let v := mul w (mul (inv h₁) h₂) -- w * (h₁⁻¹ * h₂)
-  have h₁₃' : y = mul v g₂ := h₂'
+def coset (H K: MyGroup→ Prop)  : Prop :=
+(subgroup H) ∧
+(∃ g : MyGroup, ∀ x: MyGroup, K x ↔ (∃ h, (H h) ∧ x = mul h  g))
+
+theorem right_coset_equality
+  (H K₁ K₂ : MyGroup → Prop)
+  (subH : subgroup H)
+  (cosetK₁ : coset H K₁)
+  (cosetK₂ : coset H K₂)
+  (h₁ h₂ g₁ g₂ x : MyGroup)
+  (H_h₁ : H h₁) (H_h₂ : H h₂)
+  (h₁g₁_eq_x : mul h₁ g₁ = x) (h₂g₂_eq_x : mul h₂ g₂ = x) :
+  ∀ y, (∃ h, H h ∧ y = mul h g₁) → (∃ h, H h ∧ y = mul h g₂):= by
+  intro y h
+
+  cases' h with w hwywg₁
+  have hywg₁ : y = mul w g₁ := And.right hwywg₁
+
+  -- Use the hypothesis about h₁ and g₁
+  have hxx : x = x := rfl
+  have hh₂g₂ : mul h₂ g₂ = x := h₂g₂_eq_x
+  have hh₁g₁ : (mul h₁ g₁) = x := h₁g₁_eq_x
+  have hh₁g₁h₂g₂ : mul h₁ g₁ = mul h₂ g₂ := by rw[hh₁g₁, hh₂g₂]
+  have h₀ : mul (inv h₁) (mul h₁ g₁) = mul (inv h₁) (mul h₂ g₂) := by rw[hh₁g₁h₂g₂]
+  have hh₁assoc : mul (inv h₁) (mul h₁ g₁) = mul (mul (inv h₁) h₁) g₁ := axassoc1 (inv h₁) h₁ g₁
+  have hh₁inv : mul (inv h₁) h₁ = I := And.right (axinv h₁)
+  rw [hh₁inv] at hh₁assoc
+  have hg₁identity : mul I g₁ = g₁ := And.right (axid g₁)
+  rw [hg₁identity] at hh₁assoc
+  rw [hh₁assoc] at h₀
+  have hinvh₁h₂assoc : mul (inv h₁) (mul h₂ g₂) = mul (mul (inv h₁) h₂) g₂ := axassoc1 (inv h₁) h₂ g₂
+  rw [hinvh₁h₂assoc] at h₀
+  rw [h₀] at hywg₁
+  have hassoc : mul w (mul (mul (inv h₁) h₂) g₂) = mul (mul w (mul (inv h₁) h₂)) g₂ := axassoc1 w (mul (inv h₁) h₂) g₂
+  rw [hassoc] at hywg₁
+  let v := mul w (mul (inv h₁) h₂)
+  have hyvg₂ : y = mul v g₂ := hywg₁
   have Hv : H v := by
-    have Hw : H w := And.left h₁'
-    have Hinvh₁ : H (inv h₁) := H_closed_inv h₁ H_h₁
-    have Hinvh₁h₂ : H (mul (inv h₁) h₂) := H_closed_mul (inv h₁) h₂ Hinvh₁ H_h₂
-    have Hwinvh₁h₂ : H (mul w (mul (inv h₁) h₂)) := H_closed_mul w (mul (inv h₁) h₂) Hw Hinvh₁h₂
+    have Hw : H w := And.left hwywg₁
+    have Hinvh₁ : H (inv h₁) := subH.right.left h₁ H_h₁
+    have Hinvh₁h₂ : H (mul (inv h₁) h₂) := subH.left (inv h₁) h₂ (And.intro Hinvh₁ H_h₂)
+    have Hwinvh₁h₂ : H (mul w (mul (inv h₁) h₂)) := subH.left w (mul (inv h₁) h₂) (And.intro Hw Hinvh₁h₂)
     exact Hwinvh₁h₂
-  have h₁₄' : H v ∧ y = mul v g₂ := And.intro Hv h₁₃'
-  have h₁₄ : ∃ h, H h ∧ y = h * g₂ := by use v
-  have h₁₅ : left_coset g₂ y := (left_coset_def g₂ y).mpr h₁₄
-  exact h₁₅
+  have hfinal' : H v ∧ y = mul v g₂ := And.intro Hv hyvg₂
+  have hfinal : ∃ h, H h ∧ y = mul h g₂ := by use v
+  exact hfinal
+
+
+theorem subgroup_coset_bijection (H K : MyGroup → Prop) (hH : subgroup H) (hK : coset H K) :
+  ∃ f : MyGroup → MyGroup,
+    (∀ x : MyGroup, H x → K (f x)) ∧
+    (∀ x1 x2 : MyGroup, H x1 → H x2 → f x1 = f x2 → x1 = x2) ∧
+    (∀ y : MyGroup, K y → ∃ x : MyGroup, H x ∧ f x = y)
+  := by
+    -- Extract the element g such that K is the coset H * g
+    cases' hK with H_subgroup ex_g
+    cases' ex_g with g K_eq
+
+    let f := (mul · g)
+    have h₁ : ∀ x : MyGroup, H x → K (f x) := by
+      intro x Hx
+      have eq_f_x : f x = mul x g := rfl
+      have exists_h : ∃ h, H h ∧ f x = mul h g := Exists.intro x (And.intro Hx eq_f_x)
+      exact (K_eq (f x)).mpr exists_h
+
+    have h₂ : ∀ x1 x2 : MyGroup, H x1 → H x2 → f x1 = f x2 → x1 = x2 := by
+      intros x1 x2 Hx1 Hx2 f_eq
+      -- f_eq : f x1 = f x2 → mul x1 g = mul x2 g
+      exact right_cancellation g x1 x2 f_eq
+
+    have h₃ : ∀ y : MyGroup, K y → ∃ x : MyGroup, H x ∧ f x = y := by
+      intro y Ky
+      have exists_h := (K_eq y).mp Ky
+      cases' exists_h with h hh
+      have h_correct : H h ∧ f h = y := And.intro (And.left hh) (Eq.symm (And.right hh))
+      exact Exists.intro h h_correct
+    use f
