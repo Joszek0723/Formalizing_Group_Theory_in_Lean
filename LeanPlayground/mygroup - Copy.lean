@@ -14,8 +14,7 @@ axiom mul : MyGroup → MyGroup → MyGroup
 axiom I : MyGroup
 axiom inv: MyGroup → MyGroup
 
-axiom axassoc1: ∀ (g h k: MyGroup),(mul g (mul h k)) = (mul (mul g h) k)
-axiom axassoc2: ∀ (g h k: MyGroup),(mul (mul g h) k) = (mul g (mul h k))
+axiom axassoc: ∀ (g h k: MyGroup), (mul g (mul h k)) = (mul (mul g h) k) ∧ (mul (mul g h) k) = (mul g (mul h k))
 axiom axinv (a : MyGroup): (mul a (inv a) = I) ∧ (mul (inv a) a = I)
 axiom axid (a : MyGroup): (mul a I  = a) ∧ (mul I a = a)
 
@@ -31,7 +30,7 @@ example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
 example {b: MyGroup} : b * b⁻¹ = I := by apply And.left (axinv b)
 
 
-example {a b c: MyGroup}: (mul a (mul b c))=(mul (mul a b) c) :=  by apply axassoc1 a b c
+example {a b c: MyGroup}: (mul a (mul b c))=(mul (mul a b) c) :=  by apply And.left (axassoc a b c)
 
 /- Now a real theorem.  The identity is unique; there's
 both a left and right version.  The first says there's a unique
@@ -66,7 +65,7 @@ have ha: I = a * a⁻¹  := Eq.symm (And.left (axinv a))
 calc
 b = b * I := Eq.symm (And.left (axid b))
 _ = b * (a * a⁻¹):= by rw [ha]
-_ = (b * a) * a⁻¹ :=  (axassoc1 b a a⁻¹)
+_ = (b * a) * a⁻¹ :=  And.left (axassoc b a a⁻¹)
 _ = I * a⁻¹ := by rw [h]
 _ = a⁻¹ := And.right (axid a⁻¹)
 
@@ -77,8 +76,8 @@ theorem inverse_inverse (a: MyGroup) : inv (inv a) = a := by
 
 theorem inv_mul (a b : MyGroup) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by
   have h₁ : (b⁻¹ * a⁻¹) * (a * b) = I := by
-    have h₂ : (b⁻¹ * a⁻¹) * (a * b) = b⁻¹ * (a⁻¹ * (a * b)) := axassoc2 b⁻¹ a⁻¹ (a * b)
-    have h₃ : a⁻¹ * (a * b) = (a⁻¹ * a) * b := axassoc1 a⁻¹ a b
+    have h₂ : (b⁻¹ * a⁻¹) * (a * b) = b⁻¹ * (a⁻¹ * (a * b)) := And.right (axassoc b⁻¹ a⁻¹ (a * b))
+    have h₃ : a⁻¹ * (a * b) = (a⁻¹ * a) * b := And.left (axassoc a⁻¹ a b)
     rw [h₃] at h₂
     have h₄ : a⁻¹ * a = I := And.right (axinv a)
     rw [h₄] at h₂
@@ -93,9 +92,9 @@ theorem left_cancellation (a u w: MyGroup) : mul a u = mul a w → u = w := by
   intro h
   have h₁: inv a * (a * u) = inv a * (a * w) := by
     rw[h]
-  have h₂: inv a * (a * u) = (inv a * a) * u := axassoc1 (inv a) a u
+  have h₂: inv a * (a * u) = (inv a * a) * u := And.left (axassoc (inv a) a u)
   rw [h₂] at h₁
-  have h₃: inv a * (a * w) = (inv a * a) * w := axassoc1 (inv a) a w
+  have h₃: inv a * (a * w) = (inv a * a) * w := And.left (axassoc (inv a) a w)
   rw [h₃] at h₁
   have h₄: inv a * a = I := And.right (axinv a)
   rw [h₄] at h₁
@@ -109,9 +108,9 @@ theorem right_cancellation (a u w : MyGroup): mul u a = mul w a → u = w := by
   intro h
   have h₁: (u * a) * inv a = (w * a) * inv a := by
     rw[h]
-  have h₂: (u * a) * inv a = u * (a * inv a) := axassoc2 u a (inv a)
+  have h₂: (u * a) * inv a = u * (a * inv a) := And.right (axassoc u a (inv a))
   rw [h₂] at h₁
-  have h₃: (w * a) * inv a = w * (a * inv a) := axassoc2 w a (inv a)
+  have h₃: (w * a) * inv a = w * (a * inv a) := And.right (axassoc w a (inv a))
   rw [h₃] at h₁
   have h₄: a * inv a = I := And.left (axinv a)
   rw [h₄] at h₁
@@ -144,17 +143,17 @@ theorem questionTwo (n : ℕ) (a b : MyGroup)  (h : ∀ x y : MyGroup, mul x y =
     have h₁ : pow (mul a b) (n + 1) = mul (mul a b) (pow (mul a b) n) := rfl
     have h₂ : pow (mul a b) n =  (mul (pow a n) (pow b n)) := ih
     rw [h₂] at h₁
-    have h₃ : mul (mul a b) (mul (pow a n) (pow b n)) = mul (mul (mul a b) (pow a n)) (pow b n) := axassoc1 (mul a b) (pow a n) (pow b n)
+    have h₃ : mul (mul a b) (mul (pow a n) (pow b n)) = mul (mul (mul a b) (pow a n)) (pow b n) := And.left (axassoc (mul a b) (pow a n) (pow b n))
     rw [h₃] at h₁
-    have h₄ : mul (mul a b) (pow a n) = mul a (mul b (pow a n)) := axassoc2 a b (pow a n)
+    have h₄ : mul (mul a b) (pow a n) = mul a (mul b (pow a n)) := And.right (axassoc a b (pow a n))
     rw [h₄] at h₁
     have h₅ : mul b (pow a n) = mul (pow a n) b := h b (pow a n)
     rw [h₅] at h₁
-    have h₆ : mul a (mul (pow a n) b) = mul (mul a (pow a n)) b := axassoc1 a (pow a n) b
+    have h₆ : mul a (mul (pow a n) b) = mul (mul a (pow a n)) b := And.left (axassoc a (pow a n) b)
     rw [h₆] at h₁
     have h₇ : mul a (pow a n) = pow a (n+1) := rfl
     rw [h₇] at h₁
-    have h₈ : mul (mul (pow a (n + 1)) b) (pow b n) = mul (pow a (n + 1)) (mul b (pow b n)) := axassoc2 (pow a (n + 1)) b (pow b n)
+    have h₈ : mul (mul (pow a (n + 1)) b) (pow b n) = mul (pow a (n + 1)) (mul b (pow b n)) := And.right (axassoc (pow a (n + 1)) b (pow b n))
     rw [h₈] at h₁
     have h₉ : mul b (pow b n) = pow b (n + 1) := rfl
     rw[h₉] at h₁
@@ -166,37 +165,37 @@ theorem questionThree (a b : MyGroup) (h : (pow a 2) * (pow b 2) = pow (a * b) 2
     rw [pow]    -- (a*b)^2 = (a*b)*pow(a*b)1
     rw [pow]    -- (a*b)*pow(a*b)1 = (a*b)*((a*b)*pow(a*b)0)
     rw [pow]    -- (a*b)*((a*b)*pow(a*b)0) = (a*b)*((a*b)*I)
-    have hx : (a*b)*((a*b)*I) = ((a*b)*(a*b))*I := axassoc1 (a*b) (a*b) I
+    have hx : (a * b) * ((a * b) * I) = ((a * b) * (a * b)) * I := And.left (axassoc (a * b) (a * b) I)
     rw [hx]
-    rw [And.left (axid ((a*b)*(a*b)))]  -- ((a*b)*(a*b))*I = (a*b)*(a*b)
+    rw [And.left (axid ((a * b) * (a * b)))]  -- ((a*b)*(a*b))*I = (a*b)*(a*b)
   rw [h₂] at h₁
-  have h₃ : (a * b) * (a * b) = a * (b * (a * b)) := axassoc2 a b (a * b)
+  have h₃ : (a * b) * (a * b) = a * (b * (a * b)) := And.right (axassoc a b (a * b))
   rw [h₃] at h₁
   -- Prove (a ^ 2) * (b ^ 2) = (a * a) * (b * b)
   have h₄a : pow a 2 = a * a := by
     rw [pow]         -- (a^2) = a * (a^1)
     rw [pow]         -- (a^1) = a * (a^0)
     rw [pow]         -- (a^0) = I
-    have ha : a * (a * I) = (a * a) * I := axassoc1 a a I
+    have ha : a * (a * I) = (a * a) * I := And.left (axassoc a a I)
     rw [ha]
     rw [And.left (axid (a * a))]  -- ((a*a)*I) = a*a
   have h₄b : pow b 2 = b * b := by
     rw [pow]         -- (b^2) = b * (b^1)
     rw [pow]         -- (b^1) = b * (b^0)
     rw [pow]         -- (b^0) = I
-    have hb : b * (b * I) = (b * b) * I := axassoc1 b b I
+    have hb : b * (b * I) = (b * b) * I := And.left (axassoc b b I)
     rw [hb]
     rw [And.left (axid (b * b))]  -- ((b*b)*I) = b*b
   have h₄' : pow a 2 * pow b 2 = (a * a) * (b * b) := by
     rw [h₄a]
     rw [h₄b]
   rw [h₄'] at h₁
-  have h₅ : (a * a) * (b * b) = a * (a * (b * b)) := axassoc2 a a (b * b)
+  have h₅ : (a * a) * (b * b) = a * (a * (b * b)) := And.right (axassoc a a (b * b))
   rw [h₅] at h₁
   have h₆ : b * (a * b) = a * (b * b) := (left_cancellation a (b * (a * b)) (a * (b * b))) h₁
-  have h₇ : b * (a * b) = (b * a) * b := axassoc1 b a b
+  have h₇ : b * (a * b) = (b * a) * b := And.left (axassoc b a b)
   rw [h₇] at h₆
-  have h₈ : a * (b * b) = (a * b) * b := axassoc1 a b b
+  have h₈ : a * (b * b) = (a * b) * b := And.left (axassoc a b b)
   rw [h₈] at h₆
   have h₉ : (b * a) = (a * b) := (right_cancellation b (b * a) (a * b)) h₆
   exact Eq.symm h₉
@@ -237,16 +236,16 @@ theorem right_coset_equality
   have hh₁g₁ : (mul h₁ g₁) = x := h₁g₁_eq_x
   have hh₁g₁h₂g₂ : mul h₁ g₁ = mul h₂ g₂ := by rw[hh₁g₁, hh₂g₂]
   have h₀ : mul (inv h₁) (mul h₁ g₁) = mul (inv h₁) (mul h₂ g₂) := by rw[hh₁g₁h₂g₂]
-  have hh₁assoc : mul (inv h₁) (mul h₁ g₁) = mul (mul (inv h₁) h₁) g₁ := axassoc1 (inv h₁) h₁ g₁
+  have hh₁assoc : mul (inv h₁) (mul h₁ g₁) = mul (mul (inv h₁) h₁) g₁ := And.left (axassoc (inv h₁) h₁ g₁)
   have hh₁inv : mul (inv h₁) h₁ = I := And.right (axinv h₁)
   rw [hh₁inv] at hh₁assoc
   have hg₁identity : mul I g₁ = g₁ := And.right (axid g₁)
   rw [hg₁identity] at hh₁assoc
   rw [hh₁assoc] at h₀
-  have hinvh₁h₂assoc : mul (inv h₁) (mul h₂ g₂) = mul (mul (inv h₁) h₂) g₂ := axassoc1 (inv h₁) h₂ g₂
+  have hinvh₁h₂assoc : mul (inv h₁) (mul h₂ g₂) = mul (mul (inv h₁) h₂) g₂ := And.left (axassoc (inv h₁) h₂ g₂)
   rw [hinvh₁h₂assoc] at h₀
   rw [h₀] at hywg₁
-  have hassoc : mul w (mul (mul (inv h₁) h₂) g₂) = mul (mul w (mul (inv h₁) h₂)) g₂ := axassoc1 w (mul (inv h₁) h₂) g₂
+  have hassoc : mul w (mul (mul (inv h₁) h₂) g₂) = mul (mul w (mul (inv h₁) h₂)) g₂ := And.left (axassoc w (mul (inv h₁) h₂) g₂)
   rw [hassoc] at hywg₁
   let v := mul w (mul (inv h₁) h₂)
   have hyvg₂ : y = mul v g₂ := hywg₁
