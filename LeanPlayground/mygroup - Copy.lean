@@ -63,11 +63,11 @@ _   = I := h I
 theorem unique_left_inverse (a b: MyGroup)(h: b * a = I): b = a⁻¹ := by
 have ha: I = a * a⁻¹  := Eq.symm (And.left (axinv a))
 calc
-b = b * I := Eq.symm (And.left (axid b))
-_ = b * (a * a⁻¹):= by rw [ha]
-_ = (b * a) * a⁻¹ :=  And.left (axassoc b a a⁻¹)
-_ = I * a⁻¹ := by rw [h]
-_ = a⁻¹ := And.right (axid a⁻¹)
+  b = b * I := Eq.symm (And.left (axid b))
+  _ = b * (a * a⁻¹):= by rw [ha]
+  _ = (b * a) * a⁻¹ :=  And.left (axassoc b a a⁻¹)
+  _ = I * a⁻¹ := by rw [h]
+  _ = a⁻¹ := And.right (axid a⁻¹)
 
 theorem inverse_inverse (a: MyGroup) : inv (inv a) = a := by
   have h₁: mul a (inv a) = I  := And.left (axinv a)
